@@ -1,0 +1,17 @@
+xxxx       xxxx
+x..oxxxxxxxo..x
+x.ooooooooooo.x
+xooooooooooooox
+ xxxxoooooxxxx
+ xooooooooooox 
+ xooxoxoxoxoxx 
+ xooooooooooox 
+ xooxoxoxoxoxx 
+ xooooooooooox 
+ xooxoxoxoxoxx 
+ xooooooooooox 
+ xxxxoooooxxxx 
+xooooooooooooox
+x.ooooooooooo.x
+x..oxxxxxxxo..x
+xxxx       xxxx
