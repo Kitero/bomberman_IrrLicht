@@ -25,5 +25,6 @@ if [ $? != 0 ]
 then
     cd ..
     printf "${WHITE} Installation [$RED failed$WHITE ].\n"
+    printf "Did you installed libgl1-mesa-dev ?\n"
     exit 84
 fi
