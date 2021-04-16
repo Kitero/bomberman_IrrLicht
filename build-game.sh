@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 ## EPITECH PROJECT, 2018
 ## 
 ## File description:
@@ -17,6 +17,7 @@ make
 
 if [ $? == 0 ]
 then
+    sleep 0.5
     mv bomberman ../
     cd ..
     printf "${WHITE}Build [$GREEN successfull$WHITE ].\n"
