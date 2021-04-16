@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 ## EPITECH PROJECT, 2018
 ## 
 ## File description:
