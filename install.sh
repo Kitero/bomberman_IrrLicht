@@ -1,30 +1,11 @@
 #!/bin/bash
-## EPITECH PROJECT, 2018
-## 
-## File description:
-## 
-##
+## Configure and build the game (Release).
+## Dependencies (Debian/Ubuntu):
+##   sudo apt install cmake g++ libirrlicht-dev libgl1-mesa-dev libxxf86vm-dev libxext-dev \
+##     libpng-dev libjpeg-dev zlib1g-dev libbz2-dev
 
-BCYAN='\033[1;36m'
-WHITE="\033[1;37m"
-RED="\033[0;31m"
-GREEN="\033[0;32m"
-NOC="\033[0m"
-printf "${BCYAN}Processing installation...\nPlease wait.${NOC}\n"
-cd build
-rm -rf build/CMakeFiles build/CMakeCache.txt build/cmake_install.cmake build/Makefile
-cmake ./
-make
-if [ $? == 0 ]
-then
-    cd ..
-    printf "${WHITE}Installation [$GREEN successfull$WHITE ].\n"
-    exit 0
-fi
-if [ $? != 0 ]
-then
-    cd ..
-    printf "${WHITE} Installation [$RED failed$WHITE ].\n"
-    printf "Did you installed libgl1-mesa-dev ?\n"
-    exit 84
-fi
+set -e
+cd "$(dirname "$0")"
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j"$(nproc)"
+printf "Build successful: run ./bomberman (or ./run.sh)\n"

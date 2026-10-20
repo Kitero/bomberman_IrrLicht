@@ -55,7 +55,7 @@ int	render_menu(graph_content &graph, bool is_playing)
 		images = graph.get_driver()->getTexture("./assets/Menu.jpg");
 	}
 	else
-		images = graph.get_driver()->getTexture("Black_imae.jpg");
+		images = graph.get_driver()->getTexture("./assets/black_imae.jpg");
 	while (graph.get_device()->run()) {
 		if (graph.get_EventRe()->IsKeyDown(irr::KEY_UP))
 			play = 1;
