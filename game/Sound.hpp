@@ -8,7 +8,8 @@
 #ifndef SOUND_HPP_
 	#define SOUND_HPP_
 
-#include <irrKlang.h>
+// miniaudio types stay in Sound.cpp: its header is too heavy to spread.
+struct SoundEngine;
 
 class Sound {
 	public:
@@ -19,7 +20,9 @@ class Sound {
                 void    game();
                 void    stop();
 	private:
-                irrklang::ISoundEngine *engine;
+                void    playMusic(const char *path);
+
+                SoundEngine *engine;
 };
 
 #endif /* !SOUND_HPP_ */
