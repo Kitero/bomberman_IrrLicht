@@ -2,7 +2,7 @@ name: Build
 
 on:
   push:
-    branches: ["**"]
+    branches: [master]
     tags: ["v*"]
   pull_request:
   workflow_dispatch:
@@ -10,10 +10,16 @@ on:
 permissions:
   contents: read
 
+# A new push on the same branch or PR cancels the previous run
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   linux:
     # Oldest supported runner: the binary then runs on any newer glibc.
     runs-on: ubuntu-22.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -53,6 +59,7 @@ jobs:
 
   windows:
     runs-on: windows-2022
+    timeout-minutes: 45
     env:
       VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}\vcpkg-cache
     steps:
@@ -108,6 +115,8 @@ jobs:
   # Runs install.sh in each supported distribution, as a user would.
   installer:
     runs-on: ubuntu-latest
+    # A stuck package mirror must fail fast instead of hanging for hours
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
