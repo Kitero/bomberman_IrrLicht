@@ -34,7 +34,7 @@ void		SpecBomb::setPosition(irr::f32 x, irr::f32 y)
 
 void		SpecBomb::setTimer(double timer)
 {
-	_timer = timer * 100000;
+	_timer = timer;
 }
 
 void		SpecBomb::setPlayerType(player_type_e player)

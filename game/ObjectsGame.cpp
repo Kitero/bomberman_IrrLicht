@@ -14,6 +14,7 @@
 #include "Graph.hpp"
 #include "KeyPressedEvent.hpp"
 #include "Sound.hpp"
+#include "GameClock.hpp"
 #include "Bomb.hpp"
 
 ObjectsGame::ObjectsGame(graph_content &graph, std::vector<ObjectMap> &map)
@@ -227,13 +228,14 @@ void	ObjectsGame::print_winner(graph_content &graph)
 		images = graph.get_driver()->getTexture("./assets/Player4win.png");
 	else
 		images = graph.get_driver()->getTexture("./assets/Alllose.png");
-	while(graph.get_time(1) < 220000 && graph.get_device()->run()) {
+	while(graph.get_time(1) < TICKS_TO_SECONDS(220000) && graph.get_device()->run()) {
 		graph.get_driver()->draw2DImage(images, irr::core::position2d<irr::s32>(0,0),
 						irr::core::rect<irr::s32>(0,0,SCREEN_WIDTH,SCREEN_HEIGHT),
 						0,irr::video::SColor(255,255,255,255), true);
 		graph.get_smgr()->drawAll();
 		graph.get_env()->drawAll();
 		graph.get_driver()->endScene();
+		graph.wait_next_frame();
 	}
 }
 

@@ -12,7 +12,10 @@
 # define	SCREEN_HEIGHT		1080
 
 # include "irrlichtInc.hpp"
-# include <ctime>
+# include <chrono>
+
+// Game speed is frame based (characters move a fixed step per frame)
+# define	MAX_FPS			60
 
 class MyEventReceiver;
 
@@ -25,6 +28,7 @@ private:
 	irr::IrrlichtDevice		*_device;
 	MyEventReceiver			*_receiver;
 	double				_time;
+	std::chrono::steady_clock::time_point	_nextFrame;
 public:
 	graph_content(irr::video::IVideoDriver *driver, irr::scene::ISceneManager *smgr,
 		      irr::gui::IGUIEnvironment *guienv, MyEventReceiver *receiver);
@@ -37,6 +41,7 @@ public:
 	void				set_time_count();
 	double				get_time(bool t_count);
 	void				set_device(irr::IrrlichtDevice *device);
+	void				wait_next_frame();
 };
 
 #endif		/* !MY_GRAPH_HPP */

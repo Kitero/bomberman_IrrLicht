@@ -17,7 +17,7 @@ Bomb::Bomb(SpecBomb spec, ObjectsGame &obj_game)
 	  _status(READY)
 {
 	createBomb(obj_game.get_graph());
-	_dropTime = std::clock();
+	_dropTime = game_clock();
 }
 
 Bomb::~Bomb()
@@ -26,7 +26,7 @@ Bomb::~Bomb()
 
 bool	Bomb::explosion()
 {
-	if (std::clock() >= _dropTime + _timer) {
+	if (game_clock() >= _dropTime + _timer) {
 		_status = EXPLODED;
 		return true;
 	}
@@ -98,7 +98,7 @@ void		Bomb::setStatus(status_e status)
 
 void		Bomb::setTimeDrop()
 {
-	_dropTime = std::clock();
+	_dropTime = game_clock();
 }
 
 bool		Bomb::checkExplosionsFree(irr::core::vector3df &pos)
@@ -134,7 +134,7 @@ void		Bomb::createExplosionBlock(graph_content &graph, int x, int z)
 void		Bomb::explosionIsFinished()
 {
 	std::vector<ObjectMap>::reverse_iterator	explosion = _explosionBlocks.rbegin();
-	if (_timeExplosion + TIME_EXPLOSION <= std::clock())
+	if (_timeExplosion + TIME_EXPLOSION <= game_clock())
 		for (explosion = _explosionBlocks.rbegin(); explosion != _explosionBlocks.rend(); explosion++) {
 			(*explosion).hide();
 			(*explosion).set_type(EXPLOSION_FREE);
@@ -143,5 +143,5 @@ void		Bomb::explosionIsFinished()
 
 void		Bomb::setTimeExplosion()
 {
-	_timeExplosion = std::clock();
+	_timeExplosion = game_clock();
 }
