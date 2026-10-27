@@ -125,11 +125,21 @@ jobs:
           - { distro: ubuntu, image: "ubuntu:24.04", mode: system }
           - { distro: arch, image: "archlinux:latest", mode: user }
           - { distro: fedora, image: "quay.io/fedora/fedora:latest", mode: user }
-          - { distro: opensuse-tumbleweed, image: "registry.opensuse.org/opensuse/tumbleweed:latest", mode: user }
-          - { distro: opensuse-leap, image: "registry.opensuse.org/opensuse/leap:15.6", mode: user }
+          - { distro: opensuse-tumbleweed, image: "opensuse/tumbleweed:latest", mode: user }
+          - { distro: opensuse-leap, image: "opensuse/leap:15.6", mode: user }
     name: installer (${{ matrix.distro }})
     steps:
       - uses: actions/checkout@v4
+
+      # Registries time out now and then: retry the pull before giving up
+      - name: Pull ${{ matrix.image }}
+        run: |
+          for attempt in 1 2 3; do
+            docker pull -q "${{ matrix.image }}" && exit 0
+            echo "Pull failed (attempt $attempt), retrying..."
+            sleep 15
+          done
+          exit 1
 
       - name: install.sh in ${{ matrix.image }}
         run: >
