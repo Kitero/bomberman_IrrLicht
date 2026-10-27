@@ -13,6 +13,10 @@
 #include "SpecBomb.hpp"
 #include "driverChoice.h"
 #include "stdio.h"
+#include "GameClock.hpp"
+
+# define	SPLASH_UBI_END		TICKS_TO_SECONDS(120000)
+# define	SPLASH_WINDOWS_END	TICKS_TO_SECONDS(170000)
 
 void	start_splash(graph_content &graph)
 {
@@ -22,23 +26,25 @@ void	start_splash(graph_content &graph)
 	ubi = graph.get_driver()->getTexture("./assets/Ubi.jpg");
 	windo = graph.get_driver()->getTexture("./assets/Windo95.jpg");
 	graph.set_time_count();
-	while (graph.get_time(1) < 120000 && graph.get_device()->run()) {
-		i = graph.get_time(1) / 15000;
+	while (graph.get_time(1) < SPLASH_UBI_END && graph.get_device()->run()) {
+		i = 255 * graph.get_time(1) / SPLASH_UBI_END;
 		graph.get_driver()->draw2DImage(ubi, irr::core::position2d<irr::s32>(0,0),
 						irr::core::rect<irr::s32>(0,0,SCREEN_WIDTH,SCREEN_HEIGHT), 0,
 						irr::video::SColor(i,255,255,255), true);
 		graph.get_smgr()->drawAll();
 		graph.get_env()->drawAll();
 		graph.get_driver()->endScene();
+		graph.wait_next_frame();
 	}
-	while (graph.get_time(1) < 170000 && graph.get_device()->run()) {
-		i = graph.get_time(1) / 5000;
+	while (graph.get_time(1) < SPLASH_WINDOWS_END && graph.get_device()->run()) {
+		i = 255 * (graph.get_time(1) - SPLASH_UBI_END) / (SPLASH_WINDOWS_END - SPLASH_UBI_END);
 		graph.get_driver()->draw2DImage(windo, irr::core::position2d<irr::s32>(0,0),
 						irr::core::rect<irr::s32>(0,0,SCREEN_WIDTH,SCREEN_HEIGHT), 0,
 						irr::video::SColor(i,255,255,255), true);
 		graph.get_smgr()->drawAll();
 		graph.get_env()->drawAll();
 		graph.get_driver()->endScene();
+		graph.wait_next_frame();
 	}
 }
 
@@ -94,6 +100,7 @@ int	render_menu(graph_content &graph, bool is_playing)
 		graph.get_smgr()->drawAll();
 		graph.get_env()->drawAll();
 		graph.get_driver()->endScene();
+		graph.wait_next_frame();
 	}
 	return (84);
 }
