@@ -6,35 +6,71 @@
 */
 
 #include <iostream>
+#include "miniaudio.h"
 #include "Sound.hpp"
+
+struct SoundEngine {
+        ma_engine       engine;
+        ma_sound        music;
+        bool            hasMusic;
+};
 
 Sound::Sound()
 {
-        engine = irrklang::createIrrKlangDevice();
+        engine = new SoundEngine();
+        engine->hasMusic = false;
+        // No audio device is not fatal: the game just runs silently.
+        if (ma_engine_init(NULL, &engine->engine) != MA_SUCCESS) {
+                std::cerr << "Sound: no audio device, sound disabled" << std::endl;
+                delete engine;
+                engine = NULL;
+        }
 }
 
 Sound::~Sound()
 {
-        engine->drop();
+        if (!engine)
+                return;
+        stop();
+        ma_engine_uninit(&engine->engine);
+        delete engine;
 }
 
 void    Sound::explosion()
 {
-        engine->play2D("sound/explosion.wav", false);
+        if (engine)
+                ma_engine_play_sound(&engine->engine, "sound/explosion.wav", NULL);
 }
 
 void    Sound::game()
 {
-        //std::cout <<"game is launched" << std::endl;
-        engine->play2D("sound/game.ogg", true);
+        playMusic("sound/game.ogg");
 }
 
 void    Sound::stop()
 {
-        engine->drop();
+        if (!engine || !engine->hasMusic)
+                return;
+        ma_sound_uninit(&engine->music);
+        engine->hasMusic = false;
 }
 
 void    Sound::despacito()
 {
-        engine->play2D("sound/despacito.ogg", true);
+        playMusic("sound/despacito.ogg");
+}
+
+void    Sound::playMusic(const char *path)
+{
+        if (!engine)
+                return;
+        stop();
+        if (ma_sound_init_from_file(&engine->engine, path, MA_SOUND_FLAG_STREAM,
+                                    NULL, NULL, &engine->music) != MA_SUCCESS) {
+                std::cerr << "Sound: cannot load " << path << std::endl;
+                return;
+        }
+        engine->hasMusic = true;
+        ma_sound_set_looping(&engine->music, MA_TRUE);
+        ma_sound_start(&engine->music);
 }

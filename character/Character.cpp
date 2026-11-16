@@ -143,6 +143,7 @@ bool	Character::isThereBombHere(std::vector<Character> &chara) const
 		}
 		character++;
 	}
+	return false;
 }
 
 bool	Character::checkNextPos(std::vector<ObjectMap> &map, std::vector<Character> &chara) const

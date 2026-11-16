@@ -8,7 +8,7 @@
 #ifndef		BOMB_HPP_
 # define	BOMB_HPP_
 
-# include <ctime>
+# include "GameClock.hpp"
 # include "SpecBomb.hpp"
 # include "ObjectMap.hpp"
 
@@ -20,7 +20,7 @@
 # define	SCALE_EXPLOSION		5
 # define	PATH_TEXTURE_EXPLOSION	"./assets/material/lava_still.png"
 
-# define	TIME_EXPLOSION		2
+# define	TIME_EXPLOSION		TICKS_TO_SECONDS(2)
 
 class ObjectsGame;
 
@@ -37,11 +37,11 @@ private:
 	size_t			_range;
 	std::vector<irr::f32>	_pos;
 	ObjectMap		_obj;
-	size_t			_timer;
-	std::clock_t		_dropTime;
+	double			_timer;		// seconds
+	double			_dropTime;
 	status_e		_status;
 	std::vector<ObjectMap>	_explosionBlocks;
-	std::clock_t		_timeExplosion;
+	double			_timeExplosion;
 public:
 	Bomb(SpecBomb spec, ObjectsGame &obj_game);
 	~Bomb();

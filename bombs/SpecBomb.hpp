@@ -18,7 +18,7 @@ private:
 	bool			_isWallPass;
 	size_t			_range;
 	std::vector<irr::f32>	_pos;
-	size_t			_timer;
+	double			_timer;		// seconds
 	player_type_e		_player;
 public:
 	SpecBomb();

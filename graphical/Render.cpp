@@ -31,6 +31,7 @@ int	render(graph_content &graph)
 		graph.get_smgr()->drawAll();
 		graph.get_env()->drawAll();
 		graph.get_driver()->endScene();
+		graph.wait_next_frame();
 	}
 	if (obj_game.charactere_alive() == 0)
 		obj_game.print_winner(graph);

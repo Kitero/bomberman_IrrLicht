@@ -1,0 +1,167 @@
+name: Build
+
+on:
+  push:
+    branches: [master]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A new push on the same branch or PR cancels the previous run
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linux:
+    # Oldest supported runner: the binary then runs on any newer glibc.
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            cmake g++ libirrlicht-dev libgl1-mesa-dev libxxf86vm-dev libxext-dev \
+            libpng-dev libjpeg-dev zlib1g-dev libbz2-dev xvfb xauth
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build -j"$(nproc)"
+
+      - name: Package
+        run: |
+          cmake --install build --prefix dist/bomberman
+          tar -C dist -czf bomberman-linux-x86_64.tar.gz bomberman
+
+      # The game has no exit condition: surviving the timeout means it started fine.
+      - name: Smoke test
+        run: |
+          set +e
+          timeout 10 xvfb-run -a dist/bomberman/run.sh
+          status=$?
+          if [ "$status" -ne 124 ]; then
+            echo "::error::bomberman exited early with status $status"
+            exit 1
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bomberman-linux-x86_64
+          path: bomberman-linux-x86_64.tar.gz
+
+  windows:
+    runs-on: windows-2022
+    timeout-minutes: 45
+    env:
+      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}\vcpkg-cache
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Restore vcpkg cache
+        uses: actions/cache@v4
+        with:
+          path: vcpkg-cache
+          key: vcpkg-irrlicht-x64-windows-static-${{ github.run_id }}
+          restore-keys: vcpkg-irrlicht-x64-windows-static-
+
+      - name: Install Irrlicht (vcpkg)
+        run: |
+          New-Item -ItemType Directory -Force $env:VCPKG_DEFAULT_BINARY_CACHE | Out-Null
+          & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install irrlicht:x64-windows-static
+
+      - name: Configure
+        run: >
+          cmake -S . -B build -A x64
+          -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake"
+          -DVCPKG_TARGET_TRIPLET=x64-windows-static
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Package
+        run: |
+          cmake --install build --config Release --prefix dist/bomberman
+          Compress-Archive -Path dist/bomberman -DestinationPath bomberman-windows-x64.zip
+          $version = if ("${{ github.ref_type }}" -eq "tag") { "${{ github.ref_name }}".TrimStart("v") } else { "0.0.0-dev" }
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" /Q "/DAppVersion=$version" `
+            "/DSourceDir=$PWD\dist\bomberman" /O"$PWD" packaging\windows\bomberman.iss
+
+      # The game has no exit condition: still running after the delay means it started fine.
+      - name: Smoke test
+        run: |
+          $game = Start-Process -FilePath dist\bomberman\bomberman.exe -WorkingDirectory dist\bomberman -PassThru
+          Start-Sleep -Seconds 10
+          if ($game.HasExited) {
+            Write-Output "::error::bomberman exited early with status $($game.ExitCode)"
+            exit 1
+          }
+          Stop-Process -Id $game.Id
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bomberman-windows-x64
+          path: |
+            bomberman-windows-x64.zip
+            bomberman-windows-x64-setup.exe
+
+  # Runs install.sh in each supported distribution, as a user would.
+  installer:
+    runs-on: ubuntu-latest
+    # A stuck package mirror must fail fast instead of hanging for hours
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { distro: debian, image: "debian:12", mode: user }
+          - { distro: ubuntu, image: "ubuntu:24.04", mode: system }
+          - { distro: arch, image: "archlinux:latest", mode: user }
+          - { distro: fedora, image: "quay.io/fedora/fedora:latest", mode: user }
+          - { distro: opensuse-tumbleweed, image: "opensuse/tumbleweed:latest", mode: user }
+          - { distro: opensuse-leap, image: "opensuse/leap:15.6", mode: user }
+    name: installer (${{ matrix.distro }})
+    steps:
+      - uses: actions/checkout@v4
+
+      # Registries time out now and then: retry the pull before giving up
+      - name: Pull ${{ matrix.image }}
+        run: |
+          for attempt in 1 2 3; do
+            docker pull -q "${{ matrix.image }}" && exit 0
+            echo "Pull failed (attempt $attempt), retrying..."
+            sleep 15
+          done
+          exit 1
+
+      - name: install.sh in ${{ matrix.image }}
+        run: >
+          docker run --rm -v "$PWD:/src" -w /src ${{ matrix.image }}
+          bash .github/scripts/test-installer.sh ${{ matrix.mode }}
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [linux, windows, installer]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: bomberman-*
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            bomberman-linux-x86_64.tar.gz
+            bomberman-windows-x64.zip
+            bomberman-windows-x64-setup.exe
+          generate_release_notes: true

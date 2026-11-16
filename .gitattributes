@@ -1,0 +1,3 @@
+# The map parser only skips '\n': keep LF on every platform
+map/Maps/*.txt text eol=lf
+*.sh text eol=lf
